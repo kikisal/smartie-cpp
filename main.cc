@@ -240,7 +240,7 @@ int main() {
 
     
     // component wise.
-    Tensor t3 = t1 + t2;
+    // Tensor t3 = t1 + t2;
 
 
     //std::cout << t1.dataPtr().referenceCount() << std::endl;
