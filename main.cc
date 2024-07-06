@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <functional>
+#include <cmath>
+#include <stdlib.h> // rand
 
 #include "memory.hpp"
 
@@ -126,6 +128,19 @@ public:
         return TensorBase(s).initWith(0);
     }
 
+    static TensorBase<T> randn(ShapeType s) {
+        auto t = TensorBase(s);
+
+        auto ptr   = t.data.get().buffer();
+        auto _ptr  = ptr.ptr();
+
+        auto& data = t;
+        
+        for (auto i = 0; i < data.elements(); ++i)
+            _ptr[i] = static_cast<float>(::rand()) / static_cast<float>(RAND_MAX);
+
+        return t;
+    }
 
     TensorBase(ShapeType s) : 
         shape {s},
@@ -221,6 +236,46 @@ public:
         return grad;
     }
 
+    T var() const {
+        auto m = mean();
+        auto acc = T{0};
+        
+        forEach([&](T x) {
+            acc += ::pow(x - m, 2);
+        });
+
+        return acc / elements();
+    }
+
+    T std() const {
+        return ::sqrt(var());
+    }
+
+    T mean() const {
+        auto acc = T{0};
+
+        forEach([&acc](T el) {
+            acc += el;
+        });
+
+        return acc / elements();
+    }
+
+    
+    template <typename ConsumerFunction>
+    void forEach(ConsumerFunction fn) const {
+        auto d      = data.get();
+        auto bufptr = d.buffer().ptr();
+        
+        for (size_t i = 0; i < d.elements(); ++i)
+            fn(bufptr[i]);
+    }
+
+    
+    auto elements() const {
+        return data.get().elements();
+    }
+
 private:
     ShapeType shape;
 
@@ -236,7 +291,11 @@ using Tensor = TensorBase<float>;
 int main() {
 
     // Tensor t1 = Tensor::zeros({100, 100});
-    Tensor t2 = Tensor::ones({100});
+    Tensor t2 = Tensor::randn({100, 100});
+
+    std::cout << "MEAN: " << t2.mean() << std::endl;
+    std::cout << "VAR: " << t2.var() << std::endl;
+    
 
     
     // component wise.

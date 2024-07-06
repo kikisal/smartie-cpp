@@ -85,6 +85,10 @@ public:
         return *data;
     }
 
+    const T& get() const {
+        return *data;
+    }
+
     bool isValid() const {
         return data != nullptr;
     }
